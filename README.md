@@ -4,6 +4,17 @@ This is a simple load balancer project made with Node.js and Express.
 
 It takes an IP address and routes it to one of the nodes. The same IP should go to the same node again because the routing is based on hashing.
 
+## Live Links
+
+```text
+Live server: https://loadbalancer-22xs.onrender.com
+Dashboard:   https://loadbalancer-22xs.onrender.com/metrics/ui
+Health:      https://loadbalancer-22xs.onrender.com/health
+Info:        https://loadbalancer-22xs.onrender.com/info
+Metrics:     https://loadbalancer-22xs.onrender.com/metrics
+GitHub:      https://github.com/vibhanshu-b4/LoadBalancer
+```
+
 ## What It Has
 
 - IP based routing
@@ -52,13 +63,13 @@ If both commands show versions, then Node.js is installed properly.
 Option 1: clone using Git:
 
 ```bash
-git clone <your-github-repo-link>
+git clone https://github.com/vibhanshu-b4/LoadBalancer.git
 ```
 
 Then go inside the folder:
 
 ```bash
-cd <project-folder-name>
+cd LoadBalancer
 ```
 
 Option 2: download ZIP:
@@ -236,47 +247,28 @@ Then use the URL given by ngrok.
 
 ## Host Online
 
-I used GitHub for the code:
+This project is hosted on Render here:
 
 ```text
-https://github.com/vibhanshu-b4/LoadBalancer
+https://loadbalancer-22xs.onrender.com
 ```
 
-One simple way to host this is Render.
-
-Steps:
-
-1. Go to Render and create/login to your account.
-2. Click `New` and select `Web Service`.
-3. Connect this GitHub repository:
+Open these directly:
 
 ```text
-https://github.com/vibhanshu-b4/LoadBalancer
+https://loadbalancer-22xs.onrender.com/health
+https://loadbalancer-22xs.onrender.com/info
+https://loadbalancer-22xs.onrender.com/metrics
+https://loadbalancer-22xs.onrender.com/metrics/ui
 ```
 
-4. Use these settings:
+Render setup used:
 
 ```text
 Language: Node
 Branch: main
 Build Command: npm install
 Start Command: npm start
-```
-
-5. Create the service and wait for deploy to finish.
-
-After deploy, Render will give a public URL like:
-
-```text
-https://your-app-name.onrender.com
-```
-
-Then check:
-
-```text
-https://your-app-name.onrender.com/health
-https://your-app-name.onrender.com/info
-https://your-app-name.onrender.com/metrics/ui
 ```
 
 ## Note
