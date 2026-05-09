@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Load Balancer Metrics Dashboard</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --panel: #111827;
+      --panel-2: #1f2937;
+      --text: #e5e7eb;
+      --muted: #94a3b8;
+      --accent: #38bdf8;
+      --good: #22c55e;
+      --bad: #ef4444;
+      --border: rgba(148,163,184,0.2);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      background: linear-gradient(180deg, #0f172a, #111827 70%);
+      color: var(--text);
+      min-height: 100vh;
+    }
+    .wrap {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 32px 20px 48px;
+    }
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    h1 { margin: 0; font-size: 32px; }
+    .sub { color: var(--muted); margin-top: 8px; }
+    .pill {
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: rgba(56,189,248,0.12);
+      color: #7dd3fc;
+      border: 1px solid rgba(56,189,248,0.25);
+      font-size: 13px;
+      white-space: nowrap;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+    .card {
+      background: rgba(17,24,39,0.92);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 18px;
+      box-shadow: 0 16px 40px rgba(0,0,0,.25);
+    }
+    .label { color: var(--muted); font-size: 13px; margin-bottom: 8px; }
+    .value { font-size: 30px; font-weight: 700; }
+    .section {
+      display: grid;
+      grid-template-columns: 1.2fr 0.8fr;
+      gap: 16px;
+      margin-top: 16px;
+    }
+    .card h2 { margin: 0 0 14px; font-size: 18px; }
+    .list { display: flex; flex-direction: column; gap: 10px; }
+    .row {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 12px 14px;
+      border-radius: 14px;
+      background: rgba(31,41,55,.7);
+      border: 1px solid rgba(148,163,184,.12);
+    }
+    .row small { color: var(--muted); }
+    .healthy { color: var(--good); }
+    .unhealthy { color: var(--bad); }
+    table { width: 100%; border-collapse: collapse; overflow: hidden; }
+    th, td {
+      padding: 12px 10px;
+      text-align: left;
+      border-bottom: 1px solid rgba(148,163,184,.12);
+      font-size: 14px;
+    }
+    th { color: var(--muted); font-weight: 600; }
+    .footer {
+      margin-top: 18px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .status {
+      margin-top: 10px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .actions { display: flex; gap: 10px; flex-wrap: wrap; }
+    button, a.btn {
+      appearance: none;
+      border: 0;
+      border-radius: 12px;
+      padding: 10px 14px;
+      background: var(--accent);
+      color: #082f49;
+      font-weight: 700;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+    button.secondary, a.btn.secondary {
+      background: var(--panel-2);
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+    @media (max-width: 900px) {
+      .grid, .section { grid-template-columns: 1fr; }
+      .header { align-items: flex-start; flex-direction: column; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="header">
+      <div>
+        <h1>Load Balancer Metrics Dashboard</h1>
+        <div class="sub">Live in-memory stats for request routing, node distribution, and rate-limited requests.</div>
+      </div>
+      <div class="actions">
+        <a class="btn secondary" href="/metrics" target="_blank">View JSON</a>
+        <a class="btn secondary" href="/nodes" target="_blank">View Nodes</a>
+        <button id="refreshBtn">Refresh Now</button>
+        <button id="resetBtn" class="secondary">Reset Metrics</button>
+      </div>
+    </div>
+
+    <div class="grid">
+      <div class="card">
+        <div class="label">Total Allowed Requests</div>
+        <div class="value" id="totalRequests">0</div>
+      </div>
+      <div class="card">
+        <div class="label">Rejected Requests</div>
+        <div class="value" id="rejectedRequests">0</div>
+      </div>
+      <div class="card">
+        <div class="label">Uptime</div>
+        <div class="value" id="uptime">0s</div>
+      </div>
+      <div class="card">
+        <div class="label">Top Node</div>
+        <div class="value" id="topNode">-</div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="card">
+        <h2>Requests per Node</h2>
+        <div class="list" id="nodeList"></div>
+      </div>
+      <div class="card">
+        <h2>Top IPs</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>IP</th>
+              <th>Count</th>
+            </tr>
+          </thead>
+          <tbody id="topIps"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:16px;">
+      <h2>How to Use</h2>
+      <div class="sub" style="margin-bottom: 12px;">
+        Open this page and keep it running while you send traffic to <code>/route</code>, <code>/route-random</code>, or <code>/simulate</code>.
+      </div>
+      <div class="status" id="statusText">Auto-refresh every 3 seconds.</div>
+      <div class="footer" id="lastUpdated">Last updated: -</div>
+    </div>
+  </div>
+
+  <script>
+    async function loadMetrics() {
+      try {
+        document.getElementById('statusText').textContent = 'Loading metrics...';
+        const res = await fetch('/metrics');
+        const data = await res.json();
+        if (!data.success) throw new Error('Metrics request failed');
+
+        document.getElementById('totalRequests').textContent = data.totalRequests ?? 0;
+        document.getElementById('rejectedRequests').textContent = data.rejectedRequests ?? 0;
+        document.getElementById('uptime').textContent = (data.uptimeSeconds ?? 0) + 's';
+        document.getElementById('lastUpdated').textContent = 'Last updated: ' + new Date().toLocaleString();
+
+        const perNode = data.perNode || {};
+        const entries = Object.entries(perNode).sort((a, b) => b[1] - a[1]);
+        const top = entries[0] ? entries[0][0] : '-';
+        document.getElementById('topNode').textContent = top;
+
+        const nodeList = document.getElementById('nodeList');
+        nodeList.innerHTML = '';
+        if (entries.length === 0) {
+          nodeList.innerHTML = '<div class="row"><span>No requests yet</span><small>Send traffic to populate stats</small></div>';
+        } else {
+          entries.forEach(([node, count]) => {
+            const div = document.createElement('div');
+            div.className = 'row';
+            div.innerHTML = `<span>${node}</span><strong>${count}</strong>`;
+            nodeList.appendChild(div);
+          });
+        }
+
+        const topIps = document.getElementById('topIps');
+        topIps.innerHTML = '';
+        const ipRows = data.topIPs || [];
+        if (ipRows.length === 0) {
+          topIps.innerHTML = '<tr><td colspan="2">No IP data yet</td></tr>';
+        } else {
+          ipRows.forEach(([ip, count]) => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `<td>${ip}</td><td>${count}</td>`;
+            topIps.appendChild(tr);
+          });
+        }
+
+        document.getElementById('statusText').textContent = 'Metrics loaded successfully.';
+      } catch (err) {
+        console.error(err);
+        document.getElementById('statusText').textContent = 'Failed to load metrics.';
+      }
+    }
+
+    async function resetMetrics() {
+      try {
+        document.getElementById('statusText').textContent = 'Resetting metrics...';
+        await fetch('/metrics/reset', { method: 'POST' });
+        await loadMetrics();
+      } catch (err) {
+        document.getElementById('statusText').textContent = 'Failed to reset metrics.';
+        console.error(err);
+      }
+    }
+
+    document.getElementById('refreshBtn').addEventListener('click', loadMetrics);
+    document.getElementById('resetBtn').addEventListener('click', resetMetrics);
+    loadMetrics();
+    setInterval(loadMetrics, 3000);
+  </script>
+</body>
+</html>
