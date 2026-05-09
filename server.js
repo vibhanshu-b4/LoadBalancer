@@ -4,7 +4,8 @@ const { LoadBalancer, generateRandomIP, simulateTraffic, testConsistency, runHea
 const { consume, getStatus } = require('./rateLimiter');
 
 const app = express();
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
+const HOST = '0.0.0.0';
 
 // Middleware
 app.use(express.json());
@@ -248,6 +249,16 @@ app.get('/health', (req, res) => {
     });
 });
 
+// Home route
+app.get('/', (req, res) => {
+    res.json({
+        success: true,
+        message: "Load Balancer API is running",
+        info: "/info",
+        metrics: "/metrics/ui"
+    });
+});
+
 // Route: Get info
 app.get('/info', (req, res) => {
     res.json({
@@ -269,7 +280,7 @@ app.get('/info', (req, res) => {
 });
 
 // Start server
-app.listen(PORT, () => {
+app.listen(PORT, HOST, () => {
     console.log(`\n✓ Load Balancer Server running on http://localhost:${PORT}`);
     console.log(`\nAvailable endpoints:`);
     console.log(`  GET  http://localhost:${PORT}/info`);

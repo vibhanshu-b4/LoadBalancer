@@ -234,6 +234,51 @@ ngrok http 3000
 
 Then use the URL given by ngrok.
 
+## Host Online
+
+I used GitHub for the code:
+
+```text
+https://github.com/vibhanshu-b4/LoadBalancer
+```
+
+One simple way to host this is Render.
+
+Steps:
+
+1. Go to Render and create/login to your account.
+2. Click `New` and select `Web Service`.
+3. Connect this GitHub repository:
+
+```text
+https://github.com/vibhanshu-b4/LoadBalancer
+```
+
+4. Use these settings:
+
+```text
+Language: Node
+Branch: main
+Build Command: npm install
+Start Command: npm start
+```
+
+5. Create the service and wait for deploy to finish.
+
+After deploy, Render will give a public URL like:
+
+```text
+https://your-app-name.onrender.com
+```
+
+Then check:
+
+```text
+https://your-app-name.onrender.com/health
+https://your-app-name.onrender.com/info
+https://your-app-name.onrender.com/metrics/ui
+```
+
 ## Note
 
 All logs, metrics, rate limit data, and node health data are stored in memory only. So if the server restarts, everything resets.
